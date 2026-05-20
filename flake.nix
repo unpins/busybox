@@ -42,6 +42,26 @@
       build = pkgs:
         let
           prepared = pkgs.pkgsStatic.busybox.overrideAttrs (old: {
+            # busybox kbuild aggregates per-directory `.o` files into a
+            # `built-in.o` via `$(LD) -nostdlib -r`. With our fat-LTO
+            # chain that engages lto-plugin which fails to close the
+            # relocatable output ("final close failed: invalid operation").
+            # We patch scripts/Makefile.build to use thin archives
+            # instead of `ld -r` (same approach the Linux kernel takes
+            # with CONFIG_THIN_ARCHIVES under LTO): the per-dir aggregate
+            # becomes an `ar` thin archive, LTO doesn't engage until the
+            # final link, and gcc's lto-plugin scans archive members at
+            # that point — preserving full chain-LTO across the tree.
+            #
+            # AR/NM/RANLIB are pointed at the `gcc-*` wrappers so the
+            # archive symbol indexes pick up bitcode symbols (regular
+            # `ar` can't read LTO bitcode; the wrappers load lto-plugin).
+            patches = (old.patches or [ ]) ++ [ ./lto-thin-archives.patch ];
+            makeFlags = (old.makeFlags or [ ]) ++ [
+              "AR=gcc-ar"
+              "NM=gcc-nm"
+              "RANLIB=gcc-ranlib"
+            ];
             postInstall = (old.postInstall or "") + ''
               # Merge sbin/ into bin/ so lib.withAliases (appended below) harvests
               # every applet, not just the bin/-installed subset. Idempotent —
