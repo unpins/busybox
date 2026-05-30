@@ -23,10 +23,10 @@
   # Those are convenience artifacts for embedded/initramfs usage, harmless
   # in `result/` and not shipped by action-build (which tars only the bin).
   #
-  # Why the preInstall hop: busybox installs ~395 applets across two dirs
-  # (`bin/` and `sbin/` from `busybox.links` — 265 + 130 in the current
-  # nixpkgs build). The standard `_moveSbinToBin` fixupOutputHook merges
-  # them into `bin/`, BUT it runs in fixupPhase — AFTER `lib.withAliases`'
+  # Why merge sbin→bin in postInstall: busybox installs ~395 applets across
+  # two dirs (`bin/` and `sbin/` from `busybox.links` — 265 + 130 in the
+  # current nixpkgs build). The standard `_moveSbinToBin` fixupOutputHook
+  # merges them into `bin/`, BUT it runs in fixupPhase — AFTER `lib.withAliases`'
   # postInstall scan. Without intervention `withAliases` would see only the
   # 265 bin/-installed names; the 130 sbin/-side applets (depmod, mount,
   # fdisk, lsmod, …) would never make it into UNPIN_META, and `unpin
@@ -42,27 +42,19 @@
       build = pkgs:
         let
           prepared = pkgs.pkgsStatic.busybox.overrideAttrs (old: {
-            # busybox kbuild aggregates per-directory `.o` files into a
-            # `built-in.o` via `$(LD) -nostdlib -r`. With our fat-LTO
-            # chain that engages lto-plugin which fails to close the
-            # relocatable output ("final close failed: invalid operation").
-            # We patch scripts/Makefile.build to use thin archives
-            # instead of `ld -r` (same approach the Linux kernel takes
-            # with CONFIG_THIN_ARCHIVES under LTO): the per-dir aggregate
-            # becomes an `ar` thin archive, LTO doesn't engage until the
-            # final link, and gcc's lto-plugin scans archive members at
-            # that point — preserving full chain-LTO across the tree.
-            #
-            # AR/NM/RANLIB are pointed at the `gcc-*` wrappers so the
-            # archive symbol indexes pick up bitcode symbols (regular
-            # `ar` can't read LTO bitcode; the wrappers load lto-plugin).
-            patches = (old.patches or [ ]) ++ [ ./lto-thin-archives.patch ];
-            makeFlags = (old.makeFlags or [ ]) ++ [
-              "AR=gcc-ar"
-              "NM=gcc-nm"
-              "RANLIB=gcc-ranlib"
-            ];
+            # busybox's man page is POD: `make doc` runs applets/usage_pod
+            # (built from the configured usage messages) through pod2man to emit
+            # docs/busybox.1 — one page documenting every applet. nixpkgs builds
+            # without perl, and the Makefile's `-pod2man` swallows the resulting
+            # failure (leading `-`), so no man ships. Add perl + generate it so
+            # mkStandaloneFlake's withMan embeds it (.unpin_man / `unpin man`).
+            nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.buildPackages.perl ];
+            postBuild = (old.postBuild or "") + ''
+              make docs/busybox.1
+              test -s docs/busybox.1   # pod2man's errors are ignored upstream; fail loud if empty
+            '';
             postInstall = (old.postInstall or "") + ''
+              install -Dm644 docs/busybox.1 "$out/share/man/man1/busybox.1"
               # Merge sbin/ into bin/ so lib.withAliases (appended below) harvests
               # every applet, not just the bin/-installed subset. Idempotent —
               # noop when sbin is already a symlink (re-runs, cached builds).
