@@ -61,3 +61,7 @@ The first invocation will offer to add the [unpins.cachix.org](https://unpins.ca
 ## Manual download
 
 The [Releases](https://github.com/unpins/busybox/releases) page has standalone binaries for manual download.
+
+## Build notes
+
+- **Tests:** busybox's testsuite isn't run — most cases drive applets needing root, `/proc`, `/sys`, network and a writable FHS, none available in the build sandbox. The `busybox --list` smoke is the floor.

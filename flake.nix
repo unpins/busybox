@@ -42,6 +42,11 @@
       build = pkgs:
         let
           prepared = pkgs.pkgsStatic.busybox.overrideAttrs (old: {
+            # No tests: busybox's testsuite drives applets that need root,
+            # /proc, /sys, network and a writable FHS — none available in the
+            # Nix build sandbox, so most cases error out. The `busybox --list`
+            # smoke is the floor.
+            doCheck = false;
             # busybox's man page is POD: `make doc` runs applets/usage_pod
             # (built from the configured usage messages) through pod2man to emit
             # docs/busybox.1 — one page documenting every applet. nixpkgs builds
