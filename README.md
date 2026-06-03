@@ -11,37 +11,26 @@ Linux-only: busybox upstream targets the Linux kernel (Linux-specific syscalls, 
 
 ## Usage
 
-The package ships one executable, `busybox`. `unpin install` materializes per-applet shims (`ls`, `cat`, `sed`, …) next to the multicall using argv[0] dispatch. To run a command directly without installing, invoke as `busybox <applet>`:
-
-```bash
-busybox ls -la /etc
-busybox tar czf data.tar.gz /var/data
-busybox sed -i 's/foo/bar/g' file.txt
-busybox httpd -p 8080 -h /srv/www
-```
-
-Or create symlinks named after the commands you want to use as bare names:
-
-```bash
-ln -s "$(command -v busybox)" ~/bin/ls
-ls -la /etc
-```
-
-`busybox --list` prints every built-in applet name (~395 in this configuration). `busybox --help` lists usage for the full set. Most names are also embedded as `unpin install` aliases — exceptions: `[`/`[[` (shell built-ins), `sh`/`su` (excluded by the unpins validator to avoid shadowing system tools — still callable via `busybox sh`/`busybox su`).
-
-## Installation
-
-Install with [unpin](https://github.com/unpins/unpin):
+busybox is one binary with ~395 applets dispatched by `argv[0]`. Run it bare to list them:
 
 ```bash
 unpin busybox
 ```
 
-Or run without installing:
+Run one of its applets:
 
 ```bash
-unpin run busybox
+unpin busybox ls -la /etc
+unpin busybox sed -i 's/foo/bar/g' file.txt
 ```
+
+To install onto your PATH (each applet becomes its own command — `ls`, `cat`, `sed`, …):
+
+```bash
+unpin install busybox
+```
+
+`busybox --list` prints every built-in applet (~395 in this configuration). Most are materialized as `unpin install` aliases; exceptions: `[`/`[[` (shell built-ins) and `sh`/`su` (excluded by the unpins validator to avoid shadowing system tools — still callable as `busybox sh`/`busybox su`).
 
 ## Build locally
 
