@@ -1,6 +1,6 @@
 # busybox
 
-Standalone build of [busybox](https://busybox.net/), the famous Swiss-army-knife UNIX userland packaged as a single multicall binary with ~395 programs — `ls`, `cat`, `cp`, `mv`, `sed`, `awk`, `grep`, `tar`, `gzip`, `vi`, `top`, `ps`, `kill`, `mount`, `ifconfig`, `ip`, `dhcpc`, `httpd`, `init`, `mdev`, `udhcpc`, …
+Standalone build of [busybox](https://busybox.net/), the famous Swiss-army-knife UNIX userland packaged as a single binary with ~395 programs — `ls`, `cat`, `cp`, `mv`, `sed`, `awk`, `grep`, `tar`, `gzip`, `vi`, `top`, `ps`, `kill`, `mount`, `ifconfig`, `ip`, `dhcpc`, `httpd`, `init`, `mdev`, `udhcpc`, …
 
 [![CI](https://github.com/unpins/busybox/actions/workflows/busybox.yml/badge.svg)](https://github.com/unpins/busybox/actions)
 ![Linux](https://img.shields.io/badge/Linux-✓-success?logo=linux&logoColor=white)
@@ -30,7 +30,7 @@ To install onto your PATH (each program becomes its own command — `ls`, `cat`,
 unpin install busybox
 ```
 
-`busybox --list` prints every built-in program (~395 in this configuration; busybox's own docs call them *applets*). Most are materialized as `unpin install` aliases; exceptions: `[`/`[[` (shell built-ins) and `sh`/`su` (excluded by the unpins validator to avoid shadowing system tools — still callable as `busybox sh`/`busybox su`).
+`busybox --list` prints every built-in program (~395 in this configuration). Most become `unpin install` commands; exceptions: `[`/`[[` (shell built-ins) and `sh`/`su` (excluded by the unpins validator to avoid shadowing system programs — still callable as `busybox sh`/`busybox su`).
 
 ## Build locally
 
