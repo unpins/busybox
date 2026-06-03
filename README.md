@@ -11,26 +11,26 @@ Linux-only: busybox upstream targets the Linux kernel (Linux-specific syscalls, 
 
 ## Usage
 
-busybox is one binary with ~395 applets dispatched by `argv[0]`. Run it bare to list them:
+busybox is one binary with ~395 programs dispatched by `argv[0]`. Run it bare to list them:
 
 ```bash
 unpin busybox
 ```
 
-Run one of its applets:
+Run one of its programs:
 
 ```bash
 unpin busybox ls -la /etc
 unpin busybox sed -i 's/foo/bar/g' file.txt
 ```
 
-To install onto your PATH (each applet becomes its own command — `ls`, `cat`, `sed`, …):
+To install onto your PATH (each program becomes its own command — `ls`, `cat`, `sed`, …):
 
 ```bash
 unpin install busybox
 ```
 
-`busybox --list` prints every built-in applet (~395 in this configuration). Most are materialized as `unpin install` aliases; exceptions: `[`/`[[` (shell built-ins) and `sh`/`su` (excluded by the unpins validator to avoid shadowing system tools — still callable as `busybox sh`/`busybox su`).
+`busybox --list` prints every built-in program (~395 in this configuration; busybox's own docs call them *applets*). Most are materialized as `unpin install` aliases; exceptions: `[`/`[[` (shell built-ins) and `sh`/`su` (excluded by the unpins validator to avoid shadowing system tools — still callable as `busybox sh`/`busybox su`).
 
 ## Build locally
 
