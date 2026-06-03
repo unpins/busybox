@@ -1,6 +1,6 @@
 # busybox
 
-Standalone build of [busybox](https://busybox.net/), the famous Swiss-army-knife UNIX userland packaged as a single multicall binary. argv[0] dispatch to ~395 applets — `ls`, `cat`, `cp`, `mv`, `sed`, `awk`, `grep`, `tar`, `gzip`, `vi`, `top`, `ps`, `kill`, `mount`, `ifconfig`, `ip`, `dhcpc`, `httpd`, `init`, `mdev`, `udhcpc`, …
+Standalone build of [busybox](https://busybox.net/), the famous Swiss-army-knife UNIX userland packaged as a single multicall binary with ~395 programs — `ls`, `cat`, `cp`, `mv`, `sed`, `awk`, `grep`, `tar`, `gzip`, `vi`, `top`, `ps`, `kill`, `mount`, `ifconfig`, `ip`, `dhcpc`, `httpd`, `init`, `mdev`, `udhcpc`, …
 
 [![CI](https://github.com/unpins/busybox/actions/workflows/busybox.yml/badge.svg)](https://github.com/unpins/busybox/actions)
 ![Linux](https://img.shields.io/badge/Linux-✓-success?logo=linux&logoColor=white)
@@ -11,7 +11,7 @@ Linux-only: busybox upstream targets the Linux kernel (Linux-specific syscalls, 
 
 ## Usage
 
-busybox is one binary with ~395 programs dispatched by `argv[0]`. Run it bare to list them:
+busybox is one binary with ~395 programs. Run it bare to list them:
 
 ```bash
 unpin busybox
