@@ -1,11 +1,11 @@
 # busybox
 
-Standalone build of [busybox](https://busybox.net/), the famous Swiss-army-knife UNIX userland packaged as a single binary with ~395 programs — `ls`, `cat`, `cp`, `mv`, `sed`, `awk`, `grep`, `tar`, `gzip`, `vi`, `top`, `ps`, `kill`, `mount`, `ifconfig`, `ip`, `dhcpc`, `httpd`, `init`, `mdev`, `udhcpc`, …
+[busybox](https://busybox.net/) — the famous Swiss-army-knife UNIX userland, built natively for Linux as a single self-contained binary with ~395 programs (`ls`, `cat`, `cp`, `mv`, `sed`, `awk`, `grep`, `tar`, `gzip`, `vi`, `top`, `ps`, `kill`, `mount`, `ip`, `httpd`, `init`, `udhcpc`, …).
 
 [![CI](https://github.com/unpins/busybox/actions/workflows/busybox.yml/badge.svg)](https://github.com/unpins/busybox/actions)
 ![Linux](https://img.shields.io/badge/Linux-✓-success?logo=linux&logoColor=white)
 
-Part of the [unpins](https://unpins.org) project — native single-binary builds with no third-party runtime dependencies.
+Part of the [unpins](https://unpins.org) catalog; install it with [`unpin`](https://github.com/unpins/unpin): `unpin install busybox`.
 
 Linux-only: busybox upstream targets the Linux kernel (Linux-specific syscalls, `/proc`, `/sys`, namespaces, `mount`, `switch_root`, etc.).
 
