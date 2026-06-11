@@ -37,6 +37,7 @@
   outputs = { self, unpins-lib }:
     unpins-lib.lib.mkStandaloneFlake {
       inherit self;
+      dnsFallback = true; # resolves hostnames; opt into the Android DNS fallback
       name = "busybox";
       linuxOnly = true;
       build = pkgs:
