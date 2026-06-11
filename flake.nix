@@ -43,6 +43,12 @@
       build = pkgs:
         let
           prepared = pkgs.pkgsStatic.busybox.overrideAttrs (old: {
+            # Teach busybox unpins' uniform `--unpin-program=NAME` multicall
+            # selector (a synonym of the native `busybox <applet>` form), so
+            # every catalog multicall is driven the same way. See
+            # docs/multicall.md. Alias symlinks keep dispatching on argv[0].
+            patches = (old.patches or [ ]) ++ [ ./busybox-unpin-program.patch ];
+
             # No tests: busybox's testsuite drives applets that need root,
             # /proc, /sys, network and a writable FHS — none available in the
             # Nix build sandbox, so most cases error out. The `busybox --list`
