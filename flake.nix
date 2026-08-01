@@ -25,15 +25,12 @@
   #
   # Why merge sbin→bin in postInstall: busybox installs ~395 applets across
   # two dirs (`bin/` and `sbin/` from `busybox.links` — 265 + 130 in the
-  # current nixpkgs build). The standard `_moveSbinToBin` fixupOutputHook
-  # merges them into `bin/`, BUT it runs in fixupPhase — AFTER `lib.withAliases`'
-  # postInstall scan. Without intervention `withAliases` would see only the
-  # 265 bin/-installed names; the 130 sbin/-side applets (depmod, mount,
-  # fdisk, lsmod, …) would never make it into UNPIN_META, and `unpin
-  # install busybox` would materialise only ~265 aliases. Merging sbin→bin
-  # in our postInstall — BEFORE withAliases appends its own scan-then-delete
-  # pass — gets all 395 picked up. `_moveSbinToBin` then no-ops because
-  # sbin is already a symlink.
+  # current nixpkgs build), and the alias list shipped in the binary is
+  # harvested from the symlinks in `bin/` alone. The standard `_moveSbinToBin`
+  # fixupOutputHook would merge them, but leaving 130 applets (depmod, mount,
+  # fdisk, lsmod, …) to a hook's ordering is how they go missing silently;
+  # doing it here makes the merge a property of the build. `_moveSbinToBin`
+  # then no-ops because sbin is already a symlink.
   outputs = { self, unpins-lib }:
     unpins-lib.lib.mkStandaloneFlake {
       inherit self;
@@ -67,9 +64,9 @@
             '';
             postInstall = (old.postInstall or "") + ''
               install -Dm644 docs/busybox.1 "$out/share/man/man1/busybox.1"
-              # Merge sbin/ into bin/ so lib.withAliases (appended below) harvests
-              # every applet, not just the bin/-installed subset. Idempotent —
-              # noop when sbin is already a symlink (re-runs, cached builds).
+              # Merge sbin/ into bin/ so the shipping embed harvests every
+              # applet, not just the bin/-installed subset. Idempotent — noop
+              # when sbin is already a symlink (re-runs, cached builds).
               if [ -d "$out/sbin" ] && [ ! -L "$out/sbin" ]; then
                 echo "unpins(busybox): merging $out/sbin/* into $out/bin"
                 for f in "$out/sbin"/*; do
@@ -81,18 +78,13 @@
               # `linuxrc` is the initramfs PID-1 entry name the kernel runs when
               # the root device is an initrd. Upstream busybox install drops it at
               # the package root (`$out/linuxrc → bin/busybox`); we hoist it into
-              # bin/ so lib.withAliases picks it up alongside the other applets.
+              # bin/ so the harvest picks it up alongside the other applets.
               if [ -L "$out/linuxrc" ] && [ ! -e "$out/bin/linuxrc" ]; then
                 ln -s busybox "$out/bin/linuxrc"
               fi
             '';
           });
         in
-        unpins-lib.lib.withAliases pkgs
-          {
-            primary = "busybox";
-            aliasesFromSymlinksIn = "bin";
-          }
-          prepared;
+        prepared;
     };
 }
