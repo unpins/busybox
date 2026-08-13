@@ -36,6 +36,8 @@
       inherit self;
       dnsFallback = true; # resolves hostnames; opt into the Android DNS fallback
       name = "busybox";
+      smoke = [ "--help" ];
+      smokePattern = "BusyBox v[0-9]+\\.[0-9]+";
       linuxOnly = true;
       build = pkgs:
         let
