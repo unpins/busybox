@@ -55,7 +55,19 @@
       linuxOnly = true;
       build = pkgs:
         let
-          prepared = pkgs.pkgsStatic.busybox.overrideAttrs (old: {
+          prepared = (pkgs.pkgsStatic.busybox.override {
+            # nixpkgs compiles `$out/default.script` in as udhcpc's built-in
+            # script path — right for a NixOS system, wrong for a binary we
+            # ship on its own. It puts an absolute store path in the shipped
+            # artifact (visible in `udhcpc --help` and in the generated man
+            # page) and makes the output RETAIN a runtime reference to the
+            # build tree, which the embed wrap does not ship: the closure
+            # carries 2.9 MB for a 1.3 MB binary, all of it dead. Restore
+            # busybox's own default; `udhcpc -s PROG` still takes any script.
+            extraConfig = ''
+              CONFIG_UDHCPC_DEFAULT_SCRIPT "/usr/share/udhcpc/default.script"
+            '';
+          }).overrideAttrs (old: {
             # Teach busybox unpins' uniform `--unpin-program=NAME` multicall
             # selector (a synonym of the native `busybox <applet>` form), so
             # every catalog multicall is driven the same way. See
