@@ -1,6 +1,6 @@
 # busybox
 
-[busybox](https://busybox.net/) — the famous Swiss-army-knife UNIX userland, built natively for Linux as a single self-contained binary with ~395 programs (`ls`, `cat`, `cp`, `mv`, `sed`, `awk`, `grep`, `tar`, `gzip`, `vi`, `top`, `ps`, `kill`, `mount`, `ip`, `httpd`, `init`, `udhcpc`, …).
+[busybox](https://busybox.net/) — the famous Swiss-army-knife UNIX userland, built natively for Linux as a single self-contained binary with 396 programs (`ls`, `cat`, `cp`, `mv`, `sed`, `awk`, `grep`, `tar`, `gzip`, `vi`, `top`, `ps`, `kill`, `mount`, `ip`, `httpd`, `init`, `udhcpc`, …).
 
 [![CI](https://github.com/unpins/busybox/actions/workflows/busybox.yml/badge.svg)](https://github.com/unpins/busybox/actions)
 ![Linux](https://img.shields.io/badge/Linux-✓-success?logo=linux&logoColor=white)
@@ -11,7 +11,7 @@ Linux-only: busybox upstream targets the Linux kernel (Linux-specific syscalls, 
 
 ## Usage
 
-busybox is one binary with ~395 programs. Run it bare to list them:
+busybox is one binary with 396 programs. Run it bare to list them:
 
 ```bash
 unpin busybox
@@ -30,7 +30,7 @@ To install onto your PATH (each program becomes its own command — `ls`, `cat`,
 unpin install busybox
 ```
 
-`busybox --list` prints every built-in program (~395 in this configuration). Most become `unpin install` commands; exceptions: `[`/`[[` (shell built-ins) and `sh`/`su` (excluded by the unpins validator to avoid shadowing system programs — still callable as `busybox sh`/`busybox su`).
+`busybox --list` prints every built-in program (396 in this configuration), and `unpin install` puts all of them on your PATH. One asks first: `su` would shadow the system `su`, so unpin prompts before linking it. Decline and it stays callable as `unpin busybox su`.
 
 ## Build locally
 
@@ -53,4 +53,6 @@ The [Releases](https://github.com/unpins/busybox/releases) page has standalone b
 
 ## Build notes
 
-- **Tests:** busybox's testsuite isn't run — most cases drive applets needing root, `/proc`, `/sys`, network and a writable FHS, none available in the build sandbox. The `busybox --list` smoke is the floor.
+- **Platforms:** Linux only — x86_64, aarch64, armv7l, i686, ppc64le, riscv64.
+- **Tests:** busybox's testsuite isn't run — most cases drive applets needing root, `/proc`, `/sys`, network and a writable FHS, none available in the build sandbox. What CI checks instead is every one of the 396 programs, called both as `busybox <name>` and under its own name, on each native host.
+- **Man page:** upstream generates `busybox.1` from the configured usage text and needs perl to do it; the stock nixpkgs build has no perl and silently ships no page. This build adds perl and generates it, so `unpin man busybox` works.

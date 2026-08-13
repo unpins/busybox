@@ -9,24 +9,38 @@
   inputs.unpins-lib.url = "github:unpins/nix-lib";
 
   # busybox is already a single-binary multicall by design — `bin/busybox`
-  # plus 394 argv[0]-dispatch symlinks (`ls`, `sh`, `vi`, `mount`, …)
-  # covering every configured applet. Mirrors the kmod/coreutils pattern:
-  # ship only the multicall, embed the applet names as an UNPIN_META block
-  # so unpin's installer can recreate the symlinks at install time.
+  # plus 396 argv[0]-dispatch symlinks (`ls`, `sh`, `vi`, `mount`, …), one per
+  # configured applet. Mirrors the kmod/coreutils pattern: ship only the
+  # multicall, embed the applet names as an UNPIN_META block so unpin's
+  # installer can recreate the symlinks at install time. No `multicall` option
+  # on purpose — busybox names none of its applets to nix-lib, so the embed
+  # wrap harvests the symlinks the build itself installed (nix-lib documents
+  # this package as the case that path exists for).
   #
   # Linux-only: busybox upstream targets the Linux kernel (Linux-specific
   # syscalls, /proc, /sys, namespaces, mount, switch_root). nixpkgs
   # `meta.platforms` lists every Linux arch and nothing else.
   #
-  # nixpkgs also drops a `sbin → bin` symlink, a `linuxrc → bin/busybox`
-  # symlink, and a `default.script` initramfs helper at the package root.
-  # Those are convenience artifacts for embedded/initramfs usage, harmless
-  # in `result/` and not shipped by action-build (which tars only the bin).
+  # No `engine = "unpin-llvm"`: kbuild pipes every `-MD` depfile through
+  # `fixdep`, which opens each header the compiler recorded. The engine clang
+  # serves libc from a virtual root inside the compiler image
+  # (`/__unpin_ziglib__/…`, nix-lib toolchain/unpin_clang_vfs.cpp) that has no
+  # on-disk existence, so fixdep dies on the very first object, applets.o
+  # ("No such file or directory" on `.../generic-musl/limits.h`) — measured on
+  # x86_64 and i686. Same class as libvpx, which escapes with
+  # `--disable-dependency-tracking`; kbuild has no such switch.
   #
-  # Why merge sbin→bin in postInstall: busybox installs ~395 applets across
-  # two dirs (`bin/` and `sbin/` from `busybox.links` — 265 + 130 in the
-  # current nixpkgs build), and the alias list shipped in the binary is
-  # harvested from the symlinks in `bin/` alone. The standard `_moveSbinToBin`
+  # nixpkgs also drops a `sbin → bin` symlink, a `linuxrc → bin/busybox`
+  # symlink and a `default.script` initramfs helper at the package root. None
+  # of the three reach `result/` — nix-lib's embed wrap rebuilds the output
+  # from `bin/<primary>` plus `share/man` — but they are live input to the
+  # alias harvest, which reads this build's own tree. Hence the two fixups
+  # below.
+  #
+  # Why merge sbin→bin in postInstall: busybox installs its applets across two
+  # dirs (`bin/` and `sbin/` from `busybox.links` — 265 + 130 in the current
+  # nixpkgs build), and the alias list shipped in the binary is harvested from
+  # the symlinks in `bin/` alone. The standard `_moveSbinToBin`
   # fixupOutputHook would merge them, but leaving 130 applets (depmod, mount,
   # fdisk, lsmod, …) to a hook's ordering is how they go missing silently;
   # doing it here makes the merge a property of the build. `_moveSbinToBin`
@@ -50,8 +64,9 @@
 
             # No tests: busybox's testsuite drives applets that need root,
             # /proc, /sys, network and a writable FHS — none available in the
-            # Nix build sandbox, so most cases error out. The `busybox --list`
-            # smoke is the floor.
+            # Nix build sandbox, so most cases error out. The floor is CI's
+            # applet sweep: `--help` through both dispatch paths for all 396
+            # names, on each native host.
             doCheck = false;
             # busybox's man page is POD: `make doc` runs applets/usage_pod
             # (built from the configured usage messages) through pod2man to emit
