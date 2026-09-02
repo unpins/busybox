@@ -53,6 +53,12 @@
       smoke = [ "--help" ];
       smokePattern = "BusyBox v[0-9]+\\.[0-9]+";
       linuxOnly = true;
+      # busybox documents all 396 applets in ONE page. The applet names are
+      # announced (harvested from the upstream symlinks — this flake declares no
+      # `multicall`), so without saying where they are documented the CI sweep
+      # would read 395 names as undocumented and want 395 waivers. Naming the
+      # page keeps it checkable: the sweep requires `busybox.1` to be embedded.
+      manPage = "busybox";
       build = pkgs:
         let
           prepared = (pkgs.pkgsStatic.busybox.override {
