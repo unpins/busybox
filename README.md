@@ -54,5 +54,5 @@ The [Releases](https://github.com/unpins/busybox/releases) page has standalone b
 ## Build notes
 
 - **Platforms:** Linux only — x86_64, aarch64, armv7l, i686, ppc64le, riscv64.
-- **Tests:** busybox's testsuite isn't run — most cases drive applets needing root, `/proc`, `/sys`, network and a writable FHS, none available in the build sandbox. What CI checks instead is every one of the 396 programs, called both as `busybox <name>` and under its own name, on each native host.
+- **Tests:** busybox's testsuite isn't run — most cases drive applets needing root, `/proc`, `/sys`, network and a writable FHS, none available in the build sandbox. What CI checks instead is that each of the 396 programs is reachable on every native host, both when asked for by name and when called as its own command.
 - **Man page:** upstream generates `busybox.1` from the configured usage text and needs perl to do it; the stock nixpkgs build has no perl and silently ships no page. This build adds perl and generates it, so `unpin man busybox` works.
