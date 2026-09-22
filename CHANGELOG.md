@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Built by the same compiler as the rest of the catalog (clang, in place of
+  gcc). The binary is larger: 2.06 MB against 1.30 MB on x86_64.
+
 ### Fixed
 
 - `udhcpc` no longer has a path from the machine that built it compiled in as

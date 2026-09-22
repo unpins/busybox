@@ -21,14 +21,14 @@
   # syscalls, /proc, /sys, namespaces, mount, switch_root). nixpkgs
   # `meta.platforms` lists every Linux arch and nothing else.
   #
-  # No `engine = "unpin-llvm"`: kbuild pipes every `-MD` depfile through
-  # `fixdep`, which opens each header the compiler recorded. The engine clang
-  # serves libc from a virtual root inside the compiler image
+  # On the unpin-llvm engine. kbuild pipes every `-MD` depfile through
+  # `fixdep`, which opens each header the compiler recorded — and the engine
+  # clang serves libc from a virtual root inside the compiler image
   # (`/__unpin_ziglib__/…`, nix-lib toolchain/unpin_clang_vfs.cpp) that has no
-  # on-disk existence, so fixdep dies on the very first object, applets.o
-  # ("No such file or directory" on `.../generic-musl/limits.h`) — measured on
-  # x86_64 and i686. Same class as libvpx, which escapes with
-  # `--disable-dependency-tracking`; kbuild has no such switch.
+  # on-disk existence, so a stock fixdep dies on the very first object,
+  # applets.o ("No such file or directory" on `.../generic-musl/limits.h`).
+  # ./fixdep-engine-vroot.patch skips those paths: they are toolchain headers,
+  # fixed for the build's lifetime, so there is nothing for make to track.
   #
   # nixpkgs also drops a `sbin → bin` symlink, a `linuxrc → bin/busybox`
   # symlink and a `default.script` initramfs helper at the package root. None
@@ -50,6 +50,7 @@
       inherit self;
       dnsFallback = true; # resolves hostnames; opt into the Android DNS fallback
       name = "busybox";
+      engine = "unpin-llvm";
       smoke = [ "--help" ];
       smokePattern = "BusyBox v[0-9]+\\.[0-9]+";
       linuxOnly = true;
@@ -78,7 +79,10 @@
             # selector (a synonym of the native `busybox <applet>` form), so
             # every catalog multicall is driven the same way. See
             # docs/multicall.md. Alias symlinks keep dispatching on argv[0].
-            patches = (old.patches or [ ]) ++ [ ./busybox-unpin-program.patch ];
+            patches = (old.patches or [ ]) ++ [
+              ./busybox-unpin-program.patch
+              ./fixdep-engine-vroot.patch
+            ];
 
             # No tests: busybox's testsuite drives applets that need root,
             # /proc, /sys, network and a writable FHS — none available in the
