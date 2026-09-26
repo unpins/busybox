@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.37.0-2] - 2026-09-26
+
 ### Changed
 
 - Built by the same compiler as the rest of the catalog (clang, in place of
