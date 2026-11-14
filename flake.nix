@@ -10,9 +10,9 @@
 
   # busybox is already a single-binary multicall by design — `bin/busybox`
   # plus 396 argv[0]-dispatch symlinks (`ls`, `sh`, `vi`, `mount`, …), one per
-  # configured applet. Mirrors the kmod/coreutils pattern: ship only the
-  # multicall, embed the applet names as an UNPIN_META block so unpin's
-  # installer can recreate the symlinks at install time. No `multicall` option
+  # configured applet. Ship only the multicall and embed the applet names
+  # (`unpin/aliases`) so unpin's installer can recreate the symlinks at
+  # install time. No `multicall` option
   # on purpose — busybox names none of its applets to nix-lib, so the embed
   # wrap harvests the symlinks the build itself installed (nix-lib documents
   # this package as the case that path exists for).
@@ -40,10 +40,10 @@
   # Why merge sbin→bin in postInstall: busybox installs its applets across two
   # dirs (`bin/` and `sbin/` from `busybox.links` — 265 + 130 in the current
   # nixpkgs build), and the alias list shipped in the binary is harvested from
-  # the symlinks in `bin/` alone. The standard `_moveSbinToBin`
+  # the symlinks in `bin/` alone. The standard `_moveSbin`
   # fixupOutputHook would merge them, but leaving 130 applets (depmod, mount,
   # fdisk, lsmod, …) to a hook's ordering is how they go missing silently;
-  # doing it here makes the merge a property of the build. `_moveSbinToBin`
+  # doing it here makes the merge a property of the build. `_moveSbin`
   # then no-ops because sbin is already a symlink.
   outputs = { self, unpins-lib }:
     unpins-lib.lib.mkStandaloneFlake {
@@ -95,7 +95,7 @@
             # docs/busybox.1 — one page documenting every applet. nixpkgs builds
             # without perl, and the Makefile's `-pod2man` swallows the resulting
             # failure (leading `-`), so no man ships. Add perl + generate it so
-            # mkStandaloneFlake's withMan embeds it (.unpin_man / `unpin man`).
+            # mkStandaloneFlake's withMan embeds it (unpin/man/* / `unpin man`).
             nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.buildPackages.perl ];
             postBuild = (old.postBuild or "") + ''
               make docs/busybox.1
