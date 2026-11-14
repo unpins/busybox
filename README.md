@@ -32,6 +32,10 @@ unpin install busybox
 
 `busybox --list` prints every built-in program (396 in this configuration), and `unpin install` puts all of them on your PATH. One asks first: `su` would shadow the system `su`, so unpin prompts before linking it. Decline and it stays callable as `unpin busybox su`.
 
+## Man pages
+
+`busybox.1` documents all 396 programs; read it with `unpin man busybox`.
+
 ## Build locally
 
 ```bash
@@ -56,3 +60,8 @@ The [Releases](https://github.com/unpins/busybox/releases) page has standalone b
 - **Platforms:** Linux only — x86_64, aarch64, armv7l, i686, ppc64le, riscv64.
 - **Tests:** busybox's testsuite isn't run — most cases drive applets needing root, `/proc`, `/sys`, network and a writable FHS, none available in the build sandbox. What CI checks instead is that each of the 396 programs is reachable on every native host, both when asked for by name and when called as its own command.
 - **Man page:** upstream generates `busybox.1` from the configured usage text and needs perl to do it; the stock nixpkgs build has no perl and silently ships no page. This build adds perl and generates it, so `unpin man busybox` works.
+- **Not included**, as in the nixpkgs build:
+  - `tc` — does not compile with current kernel headers.
+  - CIFS in `mount` — use the external `mount.cifs`.
+  - utmp/wtmp — musl has none, so `who`, `users`, `last` and `wall` are not in this build.
+- **`udhcpc`** ships no default script: pass `-s PROG`, or install one at `/usr/share/udhcpc/default.script`.
